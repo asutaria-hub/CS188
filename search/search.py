@@ -164,7 +164,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     "*** YOUR CODE HERE ***"
     frontier = util.PriorityQueue()
     s = problem.getStartState()
-    frontier.push((s, [], 0), priority=heuristic(s, problem))
+    frontier.push((s, [], 0), 0)
     expanded = set()
     path = []
     while not frontier.isEmpty():
@@ -176,8 +176,8 @@ def aStarSearch(problem, heuristic=nullHeuristic):
             for state in problem.expand(node[0]):
                 t = list(node[1])
                 t.append(state[1])
-                c = state[2]+heuristic(state[0], problem) + node[2]
-                frontier.push((state[0], t, c), priority=c)
+                c = state[2]+ node[2]
+                frontier.push((state[0], t, c), heuristic(state[0], problem) + node[2] + state[2])
     return path
 
 
