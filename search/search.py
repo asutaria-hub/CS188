@@ -113,12 +113,44 @@ def depthFirstSearch(problem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # util.raiseNotDefined()
+    frontier = util.Stack()
+    frontier.push((problem.getStartState(), []))
+    expanded = set()
+    path = []
+    while not frontier.isEmpty():
+        node = frontier.pop()
+        if problem.isGoalState(node[0]):
+            return node[1]
+        if node[0] not in expanded:
+            expanded.add(node[0])
+            for state in problem.expand(node[0]):
+                t = list(node[1])
+                t.append(state[1])
+                frontier.push((state[0], t))
+    return path
+
+
+
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    frontier = util.Queue()
+    frontier.push((problem.getStartState(), []))
+    expanded = set()
+    path = []
+    while not frontier.isEmpty():
+        node = frontier.pop()
+        if problem.isGoalState(node[0]):
+            return node[1]
+        if node[0] not in expanded:
+            expanded.add(node[0])
+            for state in problem.expand(node[0]):
+                t = list(node[1])
+                t.append(state[1])
+                frontier.push((state[0], t))
+    return path
 
 def nullHeuristic(state, problem=None):
     """
@@ -130,7 +162,23 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    frontier = util.PriorityQueue()
+    s = problem.getStartState()
+    frontier.push((s, [], 0), priority=heuristic(s, problem))
+    expanded = set()
+    path = []
+    while not frontier.isEmpty():
+        node = frontier.pop()
+        if problem.isGoalState(node[0]):
+            return node[1]
+        if node[0] not in expanded:
+            expanded.add(node[0])
+            for state in problem.expand(node[0]):
+                t = list(node[1])
+                t.append(state[1])
+                c = state[2]+heuristic(state[0], problem) + node[2]
+                frontier.push((state[0], t, c), priority=c)
+    return path
 
 
 # Abbreviations
