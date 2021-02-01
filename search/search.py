@@ -88,6 +88,12 @@ class SearchProblem:
         """
         util.raiseNotDefined()
 
+class StateNode:
+    def __init__(self, state, path=[], cost=0):
+        self.state = state
+        self.trail = path
+        self.cost = cost
+
 
 def tinyMazeSearch(problem):
     """
@@ -113,44 +119,39 @@ def depthFirstSearch(problem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    # util.raiseNotDefined()
     frontier = util.Stack()
-    frontier.push((problem.getStartState(), []))
+    frontier.push(StateNode(problem.getStartState()))
     expanded = set()
-    path = []
     while not frontier.isEmpty():
         node = frontier.pop()
-        if problem.isGoalState(node[0]):
-            return node[1]
-        if node[0] not in expanded:
-            expanded.add(node[0])
-            for state in problem.expand(node[0]):
-                t = list(node[1])
+        if problem.isGoalState(node.state):
+            return node.trail
+        if node.state not in expanded:
+            expanded.add(node.state)
+            for state in problem.expand(node.state):
+                t = node.trail[:]
                 t.append(state[1])
-                frontier.push((state[0], t))
-    return path
-
-
+                frontier.push(StateNode(state[0], t))
+    return node.trail
 
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
     frontier = util.Queue()
-    frontier.push((problem.getStartState(), []))
+    frontier.push(StateNode(problem.getStartState()))
     expanded = set()
-    path = []
     while not frontier.isEmpty():
         node = frontier.pop()
-        if problem.isGoalState(node[0]):
-            return node[1]
-        if node[0] not in expanded:
-            expanded.add(node[0])
-            for state in problem.expand(node[0]):
-                t = list(node[1])
+        if problem.isGoalState(node.state):
+            return node.trail
+        if node.state not in expanded:
+            expanded.add(node.state)
+            for state in problem.expand(node.state):
+                t = node.trail[:]
                 t.append(state[1])
-                frontier.push((state[0], t))
-    return path
+                frontier.push(StateNode(state[0], t))
+    return node.trail
 
 def nullHeuristic(state, problem=None):
     """
@@ -164,20 +165,20 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     "*** YOUR CODE HERE ***"
     frontier = util.PriorityQueue()
     s = problem.getStartState()
-    frontier.push((s, [], 0), 0)
+    frontier.push(StateNode(s, [], 0), 0)
     expanded = set()
     path = []
     while not frontier.isEmpty():
         node = frontier.pop()
-        if problem.isGoalState(node[0]):
-            return node[1]
-        if node[0] not in expanded:
-            expanded.add(node[0])
-            for state in problem.expand(node[0]):
-                t = list(node[1])
+        if problem.isGoalState(node.state):
+            return node.trail
+        if node.state not in expanded:
+            expanded.add(node.state)
+            for state in problem.expand(node.state):
+                t = list(node.trail)
                 t.append(state[1])
-                c = state[2]+ node[2]
-                frontier.push((state[0], t, c), heuristic(state[0], problem) + node[2] + state[2])
+                c = state[2] + node.cost
+                frontier.push(StateNode(state[0], t, c), heuristic(state[0], problem) + node.cost + state[2])
     return path
 
 

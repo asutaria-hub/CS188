@@ -297,6 +297,7 @@ class CornersProblem(search.SearchProblem):
         """
         Stores the walls, pacman's starting position and corners.
         """
+
         self.walls = startingGameState.getWalls()
         self.startingPosition = startingGameState.getPacmanPosition()
         top, right = self.walls.height-2, self.walls.width-2
@@ -315,14 +316,16 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return (self.startingPosition, (False, False, False, False))
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        if state[1] == (True, True, True, True):
+            return True
+        return False
 
     def expand(self, state):
         """
@@ -340,7 +343,11 @@ class CornersProblem(search.SearchProblem):
             # Add a child state to the child list if the action is legal
             # You should call getActions, getActionCost, and getNextState.
             "*** YOUR CODE HERE ***"
-
+            newState = self.getNextState(state, action)
+            temp = newState[0]
+            if not self.walls[temp[0]][temp[1]]:
+                c = self.getActionCost(state, action, newState)
+                children.append((newState, action, c))
         self._expanded += 1 # DO NOT CHANGE
         return children
 
@@ -367,9 +374,13 @@ class CornersProblem(search.SearchProblem):
         dx, dy = Actions.directionToVector(action)
         nextx, nexty = int(x + dx), int(y + dy)
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        start = list(state[1])
+        for i in range(0, len(self.corners)):
+            if (nextx, nexty) == self.corners[i]:
+                start[i] = True
+
         # you will need to replace the None part of the following tuple.
-        return ((nextx, nexty), None)
+        return ((nextx, nexty), tuple(start))
 
     def getCostOfActionSequence(self, actions):
         """
@@ -402,7 +413,12 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    dist = [util.manhattanDistance(state[0], problem.corners[i]) for i in range(len(problem.corners)) if not state[1][i]]
+    return max(dist) if len(dist) > 0 else 0
+
+
+
+    # return 0 # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -518,7 +534,9 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    problem.heuristicInfo
+    dist = [mazeDistance(pt, position, problem.startingGameState) for pt in foodGrid.asList()]
+    return max(dist) if len(dist) > 0 else 0
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -549,7 +567,9 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return search.aStarSearch(problem)
+
+
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -585,7 +605,10 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        for item in self.food.asList():
+            if state == item:
+                return True
+        return False
 
 def mazeDistance(point1, point2, gameState):
     """
