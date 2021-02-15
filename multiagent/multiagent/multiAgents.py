@@ -163,7 +163,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        legal = gameState.getLegalActions()
+        legal = gameState.getLegalActions(0)
         best_action = 0
         best_value = -float("inf")
         for i in range(0, len(legal)):
@@ -178,33 +178,27 @@ class MinimaxAgent(MultiAgentSearchAgent):
             return self.evaluationFunction(state)
         else:
             if agentIndex == 0:
-                legal = state.getLegalActions()
-                best_action = 0
+                legal = state.getLegalActions(agentIndex)
                 best_value = -float("inf")
                 for i in range(0, len(legal)):
-                    val = self.minimax_value(state.getNextState(0, legal[i]), agentIndex + 1, depth=depth)
+                    val = self.minimax_value(state.getNextState(agentIndex, legal[i]), agentIndex + 1, depth=depth)
                     if val > best_value:
-                        best_action = i
                         best_value = val
                 return best_value
             elif agentIndex == state.getNumAgents() - 1:
-                legal = state.getLegalActions()
-                best_action = 0
+                legal = state.getLegalActions(agentIndex)
                 best_value = float("inf")
                 for i in range(0, len(legal)):
-                    val = self.minimax_value(state.getNextState(0, legal[i]), agentIndex=0, depth=depth+1)
+                    val = self.minimax_value(state.getNextState(agentIndex, legal[i]), agentIndex=0, depth=depth+1)
                     if val < best_value:
-                        best_action = i
                         best_value = val
                 return best_value
             else:
-                legal = state.getLegalActions()
-                best_action = 0
+                legal = state.getLegalActions(agentIndex)
                 best_value = float("inf")
                 for i in range(0, len(legal)):
-                    val = self.minimax_value(state.getNextState(0, legal[i]), agentIndex + 1, depth=depth)
+                    val = self.minimax_value(state.getNextState(agentIndex, legal[i]), agentIndex + 1, depth=depth)
                     if val < best_value:
-                        best_action = i
                         best_value = val
                 return best_value
 
@@ -219,7 +213,57 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        legal = gameState.getLegalActions(0)
+        best_action = 0
+        best_value = -float("inf")
+        for i in range(0, len(legal)):
+            val = self.minimax_value(gameState.getNextState(0, legal[i]), agentIndex=1,
+                                     depth=0, a=-float("inf"), b=float("inf"))
+            if val > best_value:
+                best_action = i
+                best_value = val
+        return legal[best_action]
+
+    def minimax_value(self, state, agentIndex, depth, a, b):
+        if (state.isWin() or state.isLose() or depth == self.depth):
+            return self.evaluationFunction(state)
+        else:
+            if agentIndex == 0:
+                legal = state.getLegalActions(agentIndex)
+                best_value = -float("inf")
+                for i in range(0, len(legal)):
+                    val = self.minimax_value(state.getNextState(agentIndex, legal[i]),
+                                             agentIndex + 1, depth=depth, a=a, b=b)
+                    if val > best_value:
+                        best_value = val
+                    if best_value > b:
+                        return best_value
+                    a = max(a, best_value)
+                return best_value
+            elif agentIndex == state.getNumAgents() - 1:
+                legal = state.getLegalActions(agentIndex)
+                best_value = float("inf")
+                for i in range(0, len(legal)):
+                    val = self.minimax_value(state.getNextState(agentIndex, legal[i]),
+                                             agentIndex=0, depth=depth + 1, a=a, b=b)
+                    if val < best_value:
+                        best_value = val
+                    if best_value < a:
+                        return best_value
+                    b = min(b, best_value)
+                return best_value
+            else:
+                legal = state.getLegalActions(agentIndex)
+                best_value = float("inf")
+                for i in range(0, len(legal)):
+                    val = self.minimax_value(state.getNextState(agentIndex, legal[i]),
+                                             agentIndex + 1, depth=depth, a=a, b=b)
+                    if val < best_value:
+                        best_value = val
+                    if best_value < a:
+                        return best_value
+                    b = min(b, best_value)
+                return best_value
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
