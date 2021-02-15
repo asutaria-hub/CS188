@@ -173,24 +173,41 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 best_value = val
         return legal[best_action]
 
-    def minimax_value(self, state, is_maximizer, depth):
+    def minimax_value(self, state, agentIndex, depth):
         if (state.isWin() or state.isLose() or depth==self.depth):
             return self.evaluationFunction(state)
         else:
-            if is_maximizer:
-
+            if agentIndex == 0:
                 legal = state.getLegalActions()
                 best_action = 0
                 best_value = -float("inf")
                 for i in range(0, len(legal)):
-                    val = self.minimax_value(state.getNextState(0, legal[i]), is_maximizer=False, depth=depth+1)
+                    val = self.minimax_value(state.getNextState(0, legal[i]), agentIndex + 1, depth=depth)
                     if val > best_value:
                         best_action = i
                         best_value = val
-                return legal[best_action]
-
+                return best_value
+            elif agentIndex == state.getNumAgents() - 1:
+                legal = state.getLegalActions()
+                best_action = 0
+                best_value = float("inf")
+                for i in range(0, len(legal)):
+                    val = self.minimax_value(state.getNextState(0, legal[i]), agentIndex=0, depth=depth+1)
+                    if val < best_value:
+                        best_action = i
+                        best_value = val
+                return best_value
             else:
-                pass
+                legal = state.getLegalActions()
+                best_action = 0
+                best_value = float("inf")
+                for i in range(0, len(legal)):
+                    val = self.minimax_value(state.getNextState(0, legal[i]), agentIndex + 1, depth=depth)
+                    if val < best_value:
+                        best_action = i
+                        best_value = val
+                return best_value
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
