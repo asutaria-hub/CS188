@@ -82,20 +82,26 @@ class ReflexAgent(Agent):
         elif childGameState.isLose():
             score -= 1000000
         if childGameState.getNumFood() < currentGameState.getNumFood():
-            score += 400
+            score += 10000
 
         nfl = newFood.asList()
         for i in range(0, len(nfl)):
             foodDist.append(manhattanDistance(newPos, nfl[i]))
-        score -= (10) * min(foodDist)
+
+        if foodDist:
+            score -= (100) * min(foodDist)
 
         for i in range(0, len(newGhostStates)):
             if newScaredTimes[i] > 0:
                 score += (75) * newScaredTimes[i] / (1+manhattanDistance(newGhostStates[i].getPosition(), newPos))
             else:
                 score += (25) * manhattanDistance(newGhostStates[i].getPosition(), newPos)
-                if manhattanDistance(newGhostStates[i].getPosition(), newPos) < 3:
-                    score -= 450
+                if manhattanDistance(newGhostStates[i].getPosition(), newPos) < 2:
+                    score -= 100000
+
+        if manhattanDistance(currentGameState.getPacmanPosition(), newPos) == 0:
+            score -= 1000
+
         return score
 
 def scoreEvaluationFunction(currentGameState):
@@ -157,7 +163,34 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        legal = gameState.getLegalActions()
+        best_action = 0
+        best_value = -float("inf")
+        for i in range(0, len(legal)):
+            val = self.minimax_value(gameState.getNextState(0, legal[i]), agentIndex=1, depth=0)
+            if val > best_value:
+                best_action = i
+                best_value = val
+        return legal[best_action]
+
+    def minimax_value(self, state, is_maximizer, depth):
+        if (state.isWin() or state.isLose() or depth==self.depth):
+            return self.evaluationFunction(state)
+        else:
+            if is_maximizer:
+
+                legal = state.getLegalActions()
+                best_action = 0
+                best_value = -float("inf")
+                for i in range(0, len(legal)):
+                    val = self.minimax_value(state.getNextState(0, legal[i]), is_maximizer=False, depth=depth+1)
+                    if val > best_value:
+                        best_action = i
+                        best_value = val
+                return legal[best_action]
+
+            else:
+                pass
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
