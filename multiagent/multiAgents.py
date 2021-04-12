@@ -222,7 +222,64 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        
+        legal = gameState.getLegalActions(0)
+        best_action = 0
+        best_value = -float("inf")
+        a = -float("inf")
+        b = float("inf")
+        for i in range(0, len(legal)):
+            val = self.minimax_value(gameState.getNextState(0, legal[i]), agentIndex=1,
+                                     depth=0, a=a, b=b)
+            if val > best_value:
+                best_action = i
+                best_value = val
+            if best_value > b:
+                return best_value
+            a = max(a, best_value)
+        return legal[best_action]
+
+
+
+    def minimax_value(self, state, agentIndex, depth, a, b):
+        if (state.isWin() or state.isLose() or depth == self.depth):
+            return self.evaluationFunction(state)
+        else:
+            if agentIndex == 0:
+                legal = state.getLegalActions(agentIndex)
+                best_value = -float("inf")
+                for i in range(0, len(legal)):
+                    val = self.minimax_value(state.getNextState(agentIndex, legal[i]),
+                                             agentIndex + 1, depth=depth, a=a, b=b)
+                    if val > best_value:
+                        best_value = val
+                    if best_value > b:
+                        return best_value
+                    a = max(a, best_value)
+                return best_value
+            elif agentIndex == state.getNumAgents() - 1:
+                legal = state.getLegalActions(agentIndex)
+                best_value = float("inf")
+                for i in range(0, len(legal)):
+                    val = self.minimax_value(state.getNextState(agentIndex, legal[i]),
+                                             agentIndex=0, depth=depth + 1, a=a, b=b)
+                    if val < best_value:
+                        best_value = val
+                    if best_value < a:
+                        return best_value
+                    b = min(b, best_value)
+                return best_value
+            else:
+                legal = state.getLegalActions(agentIndex)
+                best_value = float("inf")
+                for i in range(0, len(legal)):
+                    val = self.minimax_value(state.getNextState(agentIndex, legal[i]),
+                                             agentIndex + 1, depth=depth, a=a, b=b)
+                    if val < best_value:
+                        best_value = val
+                    if best_value < a:
+                        return best_value
+                    b = min(b, best_value)
+                return best_value
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
@@ -236,15 +293,60 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
+        legal = gameState.getLegalActions(0)
+        best_action = 0
+        best_value = -float("inf")
+        for i in range(0, len(legal)):
+            val = self.minimax_value(gameState.getNextState(0, legal[i]), agentIndex=1, depth=0)
+            if val > best_value:
+                best_action = i
+                best_value = val
+        return legal[best_action]
+
+    def minimax_value(self, state, agentIndex, depth):
+        if (state.isWin() or state.isLose() or depth==self.depth):
+            return self.evaluationFunction(state)
+        else:
+            if agentIndex == 0:
+                legal = state.getLegalActions(agentIndex)
+                best_value = -float("inf")
+                for i in range(0, len(legal)):
+                    val = self.minimax_value(state.getNextState(agentIndex, legal[i]), agentIndex + 1, depth=depth)
+                    if val > best_value:
+                        best_value = val
+                return best_value
+            elif agentIndex == state.getNumAgents() - 1:
+                legal = state.getLegalActions(agentIndex)
+                avg_value = 0
+                for i in range(0, len(legal)):
+                    val = self.minimax_value(state.getNextState(agentIndex, legal[i]), agentIndex=0, depth=depth+1)
+                    avg_value += val
+                return avg_value / len(legal)
+            else:
+                legal = state.getLegalActions(agentIndex)
+                avg_value = 0
+                for i in range(0, len(legal)):
+                    val = self.minimax_value(state.getNextState(agentIndex, legal[i]), agentIndex + 1, depth=depth)
+                    avg_value += val
+                return avg_value / len(legal)
 
 def betterEvaluationFunction(currentGameState):
     """
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
 
-    DESCRIPTION: <write something here so we know what you did>
+    DESCRIPTION:
+    1.) I first iterated through the ghost states and found the distance between the ghost and pacman.
+    2.) I used this to reward Pacman for having a high minimum distance from ghosts when they're active. When the
+    ghosts are scared I subtracted it instead and weighted it by the time the ghost will be scared for to penalize
+    Pacman for being far from scared ghosts.
+    3.) I think penalized Pacman for having a large minimum distance to the next food pellet to as to encourage being
+    by food. But this metric caused Pacman to stay still next to food for extended periods of time.
+    4.) In order to combat this I heavily penalized Pacman for having food left on the board as this is the key to
+    moving around and winning
     """
     "*** YOUR CODE HERE ***"
+
     childGameState = currentGameState.getPacmanNextState(action)
     newPos = childGameState.getPacmanPosition()
     newFood = childGameState.getFood()
@@ -257,6 +359,41 @@ def betterEvaluationFunction(currentGameState):
     )
 
     
+
+
+    currPos = currentGameState.getPacmanPosition()
+    currFood = currentGameState.getFood()
+    currGhostStates = currentGameState.getGhostStates()
+    currScaredTimes = [ghostState.scaredTimer for ghostState in currGhostStates]
+    score = currentGameState.getScore()
+    minGhostDist = float("inf")
+
+
+    for i in range(0, len(currGhostStates)):
+        k = manhattanDistance(currGhostStates[i].getPosition(), currPos)
+        if currScaredTimes[i] > 0:
+            score -= (0.5) * currScaredTimes[i] * k
+        else:
+            if k < minGhostDist:
+                minGhostDist = k
+
+    if minGhostDist != float("inf"):
+       score += (1) * minGhostDist
+
+    minFoodDist = float("inf")
+    nfl = currFood.asList()
+    for i in range(0, len(nfl)):
+        val = manhattanDistance(currPos, nfl[i])
+        if val < minFoodDist:
+            minFoodDist = val
+
+    if minFoodDist != float("inf"):
+        score -= (3) * minFoodDist
+
+    score -= (20) * currentGameState.getNumFood()
+
+    return score
+
 
 # Abbreviation
 better = betterEvaluationFunction
