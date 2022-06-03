@@ -8,4 +8,4 @@ jobs:
     machine: true
     resource_class: asutaria-hub/test
     steps:
-      - run: echo "Hi I'm on Runners!"
+      - run: echo "Hi I'm on Runners! "
